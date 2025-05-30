@@ -1,0 +1,187 @@
+<html>
+	<style>
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 200px;
+			height: 200px;
+		}
+			
+		td {
+			border: 1px solid #dddddd;
+			text-align: center;
+			padding: -20px;
+			width: 20px;
+			height: 20px;
+		}
+		
+		#home, #lobby{
+			margin-top: 10%;
+			text-align: center;
+		}
+		
+		#room_id {
+			border: dotted 1px;
+			padding: 2px 5px 2px 5px;
+		}
+		
+		.navi_button {
+			width:100px;
+		}
+		
+	</style>
+	<body>
+		<div id="home">
+			<div>
+				Enter Your Name<br/>
+				<input id="inp_player_name">
+			</div>
+			<br/><br/><br/>
+			<div>
+				<button class="navi_button" onclick="enter_lobby()">Create New</button>
+			</div>
+			<br/>
+			- OR -
+			<br/><br/>
+			<div>
+				Enter Room ID <br/> <input id="inp_room_id">
+				<br/><br/>
+				<button class="navi_button">Join</button>
+			</div>
+		</div>
+		<div id="lobby">
+			<div>
+				Room ID: <label id="room_id"></label>
+			</div>
+			<br/>
+			<div>
+				Waiting for opponent...
+			</div>
+		</div>
+		<div id="game">
+			<input id="player_sign">
+			<table class="table table-bordered">
+				<tr>
+					<td id="1_1"></td>
+					<td id="1_2"></td>
+					<td id="1_3"></td>
+				</tr>
+				<tr>
+					<td id="2_1"></td>
+					<td id="2_2"></td>
+					<td id="2_3"></td>
+				</tr>
+				<tr>
+					<td id="3_1"></td>
+					<td id="3_2"></td>
+					<td id="3_3"></td>
+				</tr>
+			</table>
+		</div>
+		
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://code.jquery.com/jquery-3.6.3.js" integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM=" crossorigin="anonymous"></script>
+		
+		<script>
+		let socket = io();
+		let room_id = "";
+		
+		function hide_page(val){
+			if(val == "home"){
+				$("#home").show();
+				$("#lobby").hide();
+				$("#game").hide();
+			}
+			else if(val == "lobby"){
+				$("#home").hide();
+				$("#lobby").show();
+				$("#game").hide();
+			}
+			else if(val == "game"){
+				$("#home").hide();
+				$("#lobby").hide();
+				$("#game").show();
+			}
+		}
+		
+		function init(){
+			hide_page("home");
+		}
+		
+		function enter_home(){
+			hide_page("home");
+		}
+		
+		function enter_lobby(){
+			if(check_string($("#inp_player_name").val())){
+				hide_page("lobby");
+				generate_room_id();
+			}
+			else{
+				alert("Enter your name!");
+			}
+		}
+		
+		function generate_room_id(){
+			let tmp_rnd_id = random_string(8);
+			set_room_id(tmp_rnd_id);
+			$("#room_id").html(tmp_rnd_id);
+		}
+		
+		function random_string(len){
+			let string_set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+			let rnd = "";
+			alert(string_set.length);
+			for(let i=0; i<len; i++){
+				rnd += string_set[Math.floor(Math.random() * string_set.length)];
+			}
+			
+			return rnd;
+		}
+		
+		function check_string(val){
+			if((val).replace(/^\s+|\s+$/g,'') == ""){
+				return false;
+			}
+			else{
+				return true;
+			}
+		}
+		
+		function join_room(val){
+			//socket.emit('player move', this.id+"-"+sign);
+		}
+		
+		function set_room_id(val){
+			room_id = val;
+		}
+		
+		function init_game(){
+			hide_page("game");
+			
+			let sign = "";
+			
+			$("td").on('click', function(e) {
+				let sign = $('#player_sign').val();
+				if (sign) {
+				  socket.emit('player move', this.id+"-"+sign);
+				}
+			});
+
+			socket.on('player move', function(id) {
+				let str_arr = id.split("-");
+				let sec = $("#"+str_arr[0]);
+				if (sec.html() == "") {
+					/*$(sec).css("background", "url('/images/xox/img_" + str_arr[1] + ".png')");
+					$(sec).css("background-repeat", "no-repeat");
+					$(sec).css("background-size", "61px 61px");*/
+					
+					$(sec).html("<img src='/images/xox/img_"+str_arr[1]+".png' width='20px'/>");
+				}
+			});
+		}
+		
+		init();
+		</script>
+	</body>
+</html>
